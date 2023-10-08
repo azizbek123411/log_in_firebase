@@ -1,9 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:log_in_firebase/pages/home_ui/home_ui.dart';
-import 'package:log_in_firebase/pages/register_ui/register_page.dart';
+import 'package:log_in_firebase/services/widget_tree.dart';
 
-void main()async {
+Future<void> main()async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(const MyApp());
@@ -22,10 +21,9 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const RegisterPage(),
+      home: const WidgetTree(),
       routes: {
-        HomePage.id: (context) => const HomePage(),
-        RegisterPage.id: (context) => const RegisterPage(),
+
       },
     );
   }

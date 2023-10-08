@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:log_in_firebase/pages/home_ui/home_ui.dart';
-
-import '../../services/authentication.dart';
-
+import 'package:log_in_firebase/services/authentication.dart';
 
 class RegisterPage extends StatefulWidget {
   static const String id = 'register';
@@ -15,111 +12,124 @@ class RegisterPage extends StatefulWidget {
 }
 
 class _RegisterPageState extends State<RegisterPage> {
-  final AuthServices _auth=AuthServices();
-  User? user;
+  String errorMessage = '';
+  bool isLogin = true;
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _passwordController = TextEditingController();
 
-  void _signUP() async{
-    String email=emailController.text;
-    String password=passwordController.text;
-    User? user =await _auth.signUpWithEmailAndPassword(email, password);
-    if(user!=null){
-      print('user is successfully created');
-      Navigator.pushReplacementNamed(context,HomePage.id);
-    }else{
-      print('Error');
+  Future<void> signInWithEmailAndPassword() async {
+    try {
+      await Auth().signInWithEmailAndPassword(
+          email: _emailController.text, password: _passwordController.text);
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message!;
+      });
     }
   }
-  @override
-  void dispose() {
-    // TODO: implement dispose
-    super.dispose();
-    emailController.dispose();
-    passwordController.dispose();
+
+  Future<void> createUserWithEmailAndPassword() async {
+    try {
+      await Auth().createUserWithEmailAndPassword(
+          email: _emailController.text, password: _passwordController.text);
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        errorMessage = e.message!;
+      });
+    }
   }
 
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
+  Widget _entireField(
+    String title,
+    TextEditingController controller,
+  ) {
+    return Container(
+      margin: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Center(
+        child: TextField(
+          controller: controller,
+          decoration: InputDecoration(
+              contentPadding: const EdgeInsets.all(10),
+              border: InputBorder.none,
+              hintText: title,
+              hintStyle: const TextStyle(color: Colors.black54)),
+        ),
+      ),
+    );
+  }
+
+  Widget _errorMessage() {
+    return Text(
+      errorMessage == "" ? "" : 'Error ? $errorMessage',
+      style: const TextStyle(color: Colors.white),
+    );
+  }
+
+  Widget _submitButton() {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: TextButton(
+        onPressed: isLogin
+            ? signInWithEmailAndPassword
+            : createUserWithEmailAndPassword,
+        child: Text(
+          isLogin ? 'Log In' : "Register",
+          style: const TextStyle(color: Colors.black, fontSize: 20),
+        ),
+      ),
+    );
+  }
+
+  Widget _logInButton() {
+    return TextButton(
+        onPressed: () {
+          setState(() {
+            isLogin = !isLogin;
+          });
+        },
+        child: Text(
+          isLogin ? 'Register instead' : 'LogIn instead',
+          style: const TextStyle(color: Colors.red, fontSize: 18),
+        ));
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.purple,
-      body: ListView(children: [
-        Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.12,
-              ),
-              const Text(
-                'Sign Up',
-                style: TextStyle(
-                  color: Colors.white,
+      backgroundColor: Colors.deepPurple,
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: <Widget>[
+            Text(
+              isLogin ? "Sign In" : 'Register',
+              style: const TextStyle(
+                  fontSize: 37,
                   fontWeight: FontWeight.bold,
-                  fontSize: 40,
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.09,
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.08,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20)
-                ),
-                child: Center(
-                  child: TextField(
-                    controller: emailController,
-                    decoration: const InputDecoration(
-                        contentPadding: EdgeInsets.all(10),
-                        border: InputBorder.none,
-                      hintText: 'Enter your email adress',
-                      hintStyle: TextStyle(
-                        fontSize: 18,
-                        color: Colors.black,
-                      )
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.03,
-              ),
-              Container(
-                height: MediaQuery.of(context).size.height * 0.08,
-                decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(20)
-                ),
-                child: Center(
-                  child: TextField(
-                    controller: passwordController,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.all(10),
-                      hintText: "Enter you password",
-                        hintStyle: TextStyle(
-                          fontSize: 18,
-                          color: Colors.black,
-                        )
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: MediaQuery.of(context).size.height * 0.12,
-              ),
-              ElevatedButton(
-                onPressed: _signUP,
-                child: const Text('Sign Up'),
-              ),
-            ],
-          ),
+                  color: Colors.white),
+            ),
+            _entireField('Email', _emailController),
+            _entireField('password', _passwordController),
+            _errorMessage(),
+            const SizedBox(
+              height: 10,
+            ),
+            _submitButton(),
+            _logInButton()
+          ],
         ),
-      ]),
+      ),
     );
   }
 }
